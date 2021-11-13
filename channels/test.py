@@ -15,17 +15,16 @@ class Test(Base):
             if self.message.content.find('func(') != -1:
                 await self.message.channel.send('В вашем коде обнаружена функция или метод "func". Исправь пж')
             text = self.message.content.split('\n')
-            msg = text[0].split()
+            task_name = self.get_task_name(text[0], '!test')
             code = text[1:]
-            if msg[0] == '!test':
-                if msg[1].isdigit():
-                    if code:
-                        await self.message.channel.send("Тестирую. Попей чаю 🍵")
-                        code = self.bot.transform_code(code, int(msg[1]))
-                        for i in range(len(code)):
-                            if self.bot.run_code(code[i], int(msg[1]), i):
-                                result_string += f'✅ Тест {i} - успешно\n'
-                            else:
-                                result_string += f'❌ Тест {i} - неверный ответ\n'
+            task = self.bot.db.get_task_by_name(task_name)
+            if code:
+                await self.message.channel.send("Тестирую. Попей чаю 🍵")
+                code = self.bot.transform_code(code, task)
+                for i in range(len(code)):
+                    if self.bot.run_code(code[i], task.tests[i].output):
+                        result_string += f'✅ Тест {i} - успешно\n'
+                    else:
+                        result_string += f'❌ Тест {i} - неверный ответ\n'
 
-                        await self.message.channel.send(f'```\n{result_string}```')
+                await self.message.channel.send(f'```\n{result_string}```')

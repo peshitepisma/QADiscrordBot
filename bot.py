@@ -1,33 +1,19 @@
-import os
 import discord
 import task
 import time
 import importlib
-from settings import PathManager
 from channels import Task, Test
-
-
-def read_tasks() -> list[list[dict]]:
-    tasks = []
-    for file in os.listdir(PathManager.get_full_path('task')):
-        tasks.append([])
-        with open(PathManager.get_full_path(f'task/{file}'), 'r') as f:
-            lines = f.readlines()
-            for i in range(0, len(lines), 2):
-                tasks[-1].append({
-                    'input': lines[i].strip().split(),
-                    'output': lines[i + 1].strip().split(),
-                })
-    return tasks
+from db import Database
 
 
 class Bot(discord.Client):
 
     def __init__(self):
         super().__init__()
-        self.tasks = read_tasks()
+        self.db = Database()
+        self.db.create()
         self.channels = {
-            'test_bot_mgmt':  Task,
+            'test_bot_mgmt': Task,
             'test_bot_channel': Test,
         }
 
@@ -37,12 +23,13 @@ class Bot(discord.Client):
         if message.channel.name in self.channels.keys():
             await self.channels[message.channel.name](bot=self, message=message).run()
 
-    def transform_code(self, code, task_num):
+    def transform_code(self, code, task):
         new_code = []
-        for test_case_num in range(len(self.tasks[task_num])):
+        for test_case_num in range(len(task.tests)):
             new_code.append([])
             new_code[test_case_num] += ['class Func:\n', '    def func(self):\n', '        result____ = []\n']
             input_ctr = 0
+            test_input = task.tests[test_case_num].input.strip().split()
             for i in range(len(code)):
                 new_code[test_case_num].append('        ' + code[i] + '\n')
                 if new_code[test_case_num][-1].find('print') != -1:
@@ -60,16 +47,13 @@ class Bot(discord.Client):
                     for j in range(len(new_code[test_case_num][-1])):
                         if new_code[test_case_num][-1][j] == '=':
                             index = j
-
-                    new_code[test_case_num][-1] = new_code[test_case_num][-1][:index + 1] + \
-                                                  ' ' + str(
-                        self.tasks[task_num][test_case_num]['input'][input_ctr]) + '\n'
+                    new_code[test_case_num][-1] = f'{new_code[test_case_num][-1][:index + 1]} {test_input[input_ctr]}\n'
                     input_ctr += 1
             new_code[test_case_num] += ['        return result____\n', 'f = Func()\n', 'f.func()']
 
         return new_code
 
-    def run_code(self, code, task_num, case_num) -> bool:
+    def run_code(self, code, test) -> bool:
         file = open(f'task.py', 'w', encoding='utf-8')
         for line in code:
             file.write(line)
@@ -82,4 +66,4 @@ class Bot(discord.Client):
         for i in range(len(result)):
             result[i] = str(result[i])
 
-        return result == self.tasks[task_num][case_num]['output']
+        return result == test.output.strip().split()
