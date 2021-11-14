@@ -1,9 +1,11 @@
 import discord
+from db import Database
 
 
 class Base:
     def __init__(self, bot, message: discord.Message):
         self.bot = bot
+        self.db: Database = bot.db
         self.message = message
 
     @staticmethod

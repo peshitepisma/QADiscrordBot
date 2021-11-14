@@ -1,14 +1,11 @@
 import discord
-import time
-import importlib
-from channels import Task, Test
+from commands import Task, Test
 from db import Database
 
 
 class Bot(discord.Client):
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.db = Database()
         self.db.create()
         self.channels = {
