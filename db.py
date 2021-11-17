@@ -67,7 +67,7 @@ class Database:
 
     @session
     def add_test_for_task(self, task, input: str, output: str):
-        test = self.Tests(task_id=task.id, input=input, output=output)
+        test = self.Tests(task_id=task.id, input=input.strip(), output=output.strip())
         self.session.add(test)
 
     def update_session(self):

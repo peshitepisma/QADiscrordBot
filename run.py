@@ -3,7 +3,7 @@ from bot import Bot
 
 
 def main():
-    bot = Bot()
+    bot = Bot(command_prefix='!')
     bot.run(os.environ.get('TOKEN', ''))
 
 

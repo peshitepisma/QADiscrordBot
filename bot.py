@@ -1,20 +1,20 @@
-import discord
-from commands import Task, Test
+import os
+from misc import get_full_path
+from discord.ext import commands
 from db import Database
 
 
-class Bot(discord.Client):
+class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = Database()
         self.db.create()
-        self.channels = {
-            'test_bot_mgmt': Task,
-            'test_bot_channel': Test,
-        }
 
-    async def on_message(self, message: discord.Message):
-        if message.author == self.user:
-            return
-        if message.channel.name in self.channels.keys():
-            await self.channels[message.channel.name](bot=self, message=message).run()
+    async def on_ready(self):
+        print('Logged on as', self.user)
+        self.load_cogs()
+
+    def load_cogs(self):
+        for filename in os.listdir(get_full_path('cogs')):
+            if filename.endswith('.py') and filename not in ['base.py', '__init__.py']:
+                self.load_extension(f"cogs.{filename[:-3]}")
