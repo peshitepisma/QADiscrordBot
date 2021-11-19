@@ -1,4 +1,5 @@
 import functools
+
 from db import Database
 from typing import Union
 from discord.ext import commands
