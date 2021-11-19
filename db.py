@@ -1,3 +1,4 @@
+import functools
 from misc.addition import get_full_path
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -5,6 +6,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, create_engine, exc
 
 
 def session(func):
+    @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         func(self, *args, **kwargs)
         self.update_session()
@@ -12,12 +14,12 @@ def session(func):
 
 
 def catch_except(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except exc.NoResultFound:
             return None
-
     return wrapper
 
 
@@ -35,6 +37,7 @@ class Database:
         __tablename__ = 'Tasks'
         id = Column(Integer, primary_key=True)
         name = Column(String(20), nullable=False, unique=True)
+        description = Column(String(300), nullable=False)
         tests = relationship("Tests", cascade="all, delete, delete-orphan")
 
     def __init__(self):

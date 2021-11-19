@@ -1,7 +1,8 @@
 import functools
+from db import Database
+from typing import Union
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from db import Database
 
 
 class Base(commands.Cog):
@@ -10,11 +11,15 @@ class Base(commands.Cog):
         self.db: Database = bot.db
 
 
-def parse_channel(channel_name: str = ''):
+def parse_channel(channel_name: Union[str, list]):
+    if isinstance(channel_name, str):
+        channel_name = [channel_name]
+    channel_name = [i.lower() for i in channel_name]
+
     def decorator(func):
         @functools.wraps(func)
         async def wrapper(self, ctx: Context, *args, **kwargs):
-            if ctx.channel.name.lower() == channel_name.lower():
+            if ctx.channel.name.lower() in channel_name:
                 await func(self, ctx, *args, **kwargs)
         return wrapper
     return decorator

@@ -8,19 +8,26 @@ class Task(Base):
     channel_name = 'config'
 
     @commands.command()
-    @parse_channel(channel_name)
+    @parse_channel([channel_name, 'tester'])
     async def task_list(self, ctx):
+        async def sender(msg: str):
+            if ctx.channel.name == self.channel_name:
+                await ctx.channel.send(msg)
+            else:
+                await ctx.author.send(msg)
+
         result_str = ''
         for i, task in enumerate(self.db.get_tasks()):
             result_str += f'{i + 1}. {task.name}\n'
         if not result_str:
-            await ctx.author.send(f'Список заданий пуст')
+            await sender('Список заданий пуст')
         else:
-            await ctx.author.send(f'Доступные задания:```\n{result_str}```')
+            await sender(f'Доступные задания:```\n{result_str}```')
 
     @commands.command()
     @parse_channel(channel_name)
-    async def add_task(self, ctx, task_name):
+    async def add_task(self, ctx, task_name, *description):
+        print(*description)
         try:
             self.db.create_task(task_name)
             await ctx.channel.send(f'Добавлено задание: {task_name}')
@@ -32,8 +39,7 @@ class Task(Base):
     @parse_channel(channel_name)
     async def add_test(self, ctx, task_name, *, test):
         task = self.db.get_task_by_name(task_name)
-        tests = test.strip().replace('```', '').strip()
-        tests = tests.split('**')
+        tests = test.replace('```', '').strip().split('**')
         tests = [line.strip().split('*') for line in tests]
         if task:
             for test in tests:
