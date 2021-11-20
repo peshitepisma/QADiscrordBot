@@ -5,8 +5,8 @@ from cogs import Base
 from misc import get_full_path
 from discord.ext import commands
 from subprocess import Popen, PIPE
-from cogs.base import parse_channel
 from prettytable import PrettyTable
+from cogs.base import parse_channel
 
 
 class Test(Base):
