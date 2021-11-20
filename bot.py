@@ -1,7 +1,7 @@
 import os
+from db import Database
 from misc import get_full_path
 from discord.ext import commands
-from db import Database
 
 
 class Bot(commands.Bot):
