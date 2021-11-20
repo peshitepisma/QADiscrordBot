@@ -1,6 +1,6 @@
-from discord.ext import commands
-from sqlalchemy import exc
 from cogs import Base
+from sqlalchemy import exc
+from discord.ext import commands
 from cogs.base import parse_channel
 
 
