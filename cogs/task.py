@@ -1,21 +1,20 @@
-from discord.ext import commands
-from sqlalchemy import exc
+from discord_slash.utils.manage_commands import create_option
 from cogs import Base
-from cogs.base import parse_channel
+from sqlalchemy import exc
+from discord_slash import cog_ext, SlashContext
 
 
 class Task(Base):
     channel_name = 'config'
 
-    @commands.command()
-    @parse_channel([channel_name, 'tester'])
-    async def task_list(self, ctx):
+    # @parse_channel([channel_name, 'tester'])
+    @cog_ext.cog_slash(description='Получить список доступных заданий')
+    async def tasks(self, ctx: SlashContext):
         async def sender(msg: str):
             if ctx.channel.name == self.channel_name:
                 await ctx.channel.send(msg)
             else:
                 await ctx.author.send(msg)
-
         result_str = ''
         for i, task in enumerate(self.db.get_tasks()):
             result_str += f'{i + 1}. {task.name}\n'
@@ -24,10 +23,11 @@ class Task(Base):
         else:
             await sender(f'Доступные задания:```\n{result_str}```')
 
-    @commands.command()
-    @parse_channel(channel_name)
-    async def add_task(self, ctx, task_name, *description):
-        print(*description)
+    #@parse_channel(channel_name)
+    @cog_ext.cog_slash(description='Добавить новое задание', options=[
+        create_option(name="task_name", description="Имя для задания", option_type=3, required=True)
+    ])
+    async def add_task(self, ctx: SlashContext, task_name):
         try:
             self.db.create_task(task_name)
             await ctx.channel.send(f'Добавлено задание: {task_name}')
@@ -35,8 +35,11 @@ class Task(Base):
             self.db.session.rollback()
             await ctx.channel.send(f'Задание с таким именем уже существует: {task_name}')
 
-    @commands.command()
-    @parse_channel(channel_name)
+    #@parse_channel(channel_name)
+    @cog_ext.cog_slash(description='Добавить тесткейс', options=[
+        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True),
+        create_option(name="test", description='Тест по шаблону', option_type=3, required=True),
+    ])
     async def add_test(self, ctx, task_name, *, test):
         task = self.db.get_task_by_name(task_name)
         tests = test.replace('```', '').strip().split('**')
@@ -48,8 +51,11 @@ class Task(Base):
         else:
             await ctx.channel.send(f'Задание с таким именем не существует: {task_name}')
 
-    @commands.command()
-    @parse_channel(channel_name)
+    #@commands.command()
+    #@parse_channel(channel_name)
+    @cog_ext.cog_slash(description='Удалить определенное задание', options=[
+        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True)
+    ])
     async def remove_task(self, ctx, task_name):
         task = self.db.get_task_by_name(task_name)
         if task:
@@ -58,9 +64,10 @@ class Task(Base):
         else:
             await ctx.channel.send(f'Задания не сусществует: {task_name}')
 
-    @commands.command()
-    @parse_channel(channel_name)
-    async def clear(self, ctx):
+    #@commands.command()
+    #@parse_channel(channel_name)
+    @cog_ext.cog_slash(description='Удалить все задания')
+    async def clear_tasks(self, ctx):
         self.db.delete_all_tasks()
         await ctx.channel.send(f'Список заданий очищен')
 

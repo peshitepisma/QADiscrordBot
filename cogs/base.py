@@ -1,5 +1,4 @@
 import functools
-
 from db import Database
 from typing import Union
 from discord.ext import commands
@@ -7,7 +6,9 @@ from discord.ext.commands.context import Context
 
 
 class Base(commands.Cog):
+
     def __init__(self, bot):
+        super().__init__()
         self.bot = bot
         self.db: Database = bot.db
 

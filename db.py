@@ -37,7 +37,7 @@ class Database:
         __tablename__ = 'Tasks'
         id = Column(Integer, primary_key=True)
         name = Column(String(20), nullable=False, unique=True)
-        description = Column(String(300), nullable=False)
+        #description = Column(String(300), nullable=False)
         tests = relationship("Tests", cascade="all, delete, delete-orphan")
 
     def __init__(self):

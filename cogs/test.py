@@ -1,11 +1,15 @@
 import os
 import sys
 import time
+
+from discord_slash import cog_ext
+from discord_slash.utils.manage_commands import create_option
+
 from cogs import Base
-from cogs.base import parse_channel
 from misc import get_full_path
 from discord.ext import commands
 from subprocess import Popen, PIPE
+from cogs.base import parse_channel
 from prettytable import PrettyTable
 
 
@@ -13,8 +17,11 @@ class Test(Base):
     channel_name = 'tester'
     file_name = get_full_path(f'task.py')
 
-    @commands.command()
-    @parse_channel(channel_name)
+    #@parse_channel(channel_name)
+    @cog_ext.cog_slash(description='Запустить тест', options=[
+        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True),
+        create_option(name="code", description="Python code", option_type=3, required=True),
+    ])
     async def test(self, ctx, task_name, *, code):
         task = self.db.get_task_by_name(task_name)
         if not task:
