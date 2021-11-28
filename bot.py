@@ -22,8 +22,6 @@ class Bot(commands.Bot):
         print('Logged on as', self.user)
         while self.user:
             await self.change_presence(status=discord.Status.online, activity=discord.Game("тестирую твой код"))
-            await sleep(5)
-            await self.change_presence(status=discord.Status.online, activity=discord.Game("/help"))
 
     async def on_member_join(self, member):
         role = member.guild.get_role(role_id=911196795210694687)
