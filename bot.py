@@ -2,7 +2,6 @@ import os
 import discord
 from discord_slash import SlashCommand, utils
 from db import Database
-from asyncio import sleep
 from misc import get_full_path
 from discord.ext import commands
 from misc.addition import Server
