@@ -1,12 +1,14 @@
 import os
-
 from discord_slash.model import SlashCommandPermissionType
 from discord_slash.utils.manage_commands import create_permission
 
 
 def get_full_path(path: str) -> str:
-    root_dir = os.path.dirname(os.path.abspath('run.py'))
-    return os.path.join(*[root_dir] + path.lower().replace('\\', '/').split('/'))
+    ROOT_DIR: str = os.path.dirname(os.path.abspath('run.py'))
+    if bool(os.environ.get('DEBUG', 0)):
+        return os.path.join(*[ROOT_DIR] + path.lower().replace('\\', '/').split('/'))
+    else:
+        return os.path.join(*'home/QABot/'.split('/') + path.lower().replace('\\', '/').split('/'))
 
 
 class Server:
@@ -26,5 +28,3 @@ class Server:
             ]
         }
 
-    def get_premission_for_config(self, data: dict):
-        pass
