@@ -1,75 +1,73 @@
+from discord.ext import commands
+from discord.ext.commands import Context
 from discord_slash.utils.manage_commands import create_option
 from cogs import Base
 from sqlalchemy import exc
 from discord_slash import cog_ext, SlashContext
+from cogs.base import parse_channel
+from misc.addition import Server
 
 
 class Task(Base):
     channel_name = 'config'
 
-    # @parse_channel([channel_name, 'tester'])
     @cog_ext.cog_slash(description='Получить список доступных заданий')
     async def tasks(self, ctx: SlashContext):
-        async def sender(msg: str):
-            if ctx.channel.name == self.channel_name:
-                await ctx.channel.send(msg)
-            else:
-                await ctx.author.send(msg)
         result_str = ''
         for i, task in enumerate(self.db.get_tasks()):
             result_str += f'{i + 1}. {task.name}\n'
         if not result_str:
-            await sender('Список заданий пуст')
+            await ctx.send('Список заданий пуст', hidden=True)
         else:
-            await sender(f'Доступные задания:```\n{result_str}```')
+            await ctx.send(f'Доступные задания:```\n{result_str}```', hidden=True)
 
-    #@parse_channel(channel_name)
-    @cog_ext.cog_slash(description='Добавить новое задание', options=[
-        create_option(name="task_name", description="Имя для задания", option_type=3, required=True)
-    ])
-    async def add_task(self, ctx: SlashContext, task_name):
+    @commands.command()
+    @parse_channel(channel_name)
+    async def add_task(self, ctx: Context, task_name, *, description):
         try:
-            self.db.create_task(task_name)
-            await ctx.channel.send(f'Добавлено задание: {task_name}')
+            self.db.create_task(task_name, description)
+            await ctx.send(f'Добавлено задание: {task_name}')
         except exc.IntegrityError:
             self.db.session.rollback()
-            await ctx.channel.send(f'Задание с таким именем уже существует: {task_name}')
+            await ctx.send(f'Задание с таким именем уже существует: {task_name}')
 
-    #@parse_channel(channel_name)
-    @cog_ext.cog_slash(description='Добавить тесткейс', options=[
-        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True),
-        create_option(name="test", description='Тест по шаблону', option_type=3, required=True),
-    ])
-    async def add_test(self, ctx, task_name, *, test):
+    @commands.command()
+    @parse_channel(channel_name)
+    async def add_test(self, ctx: Context, task_name, *, test):
         task = self.db.get_task_by_name(task_name)
-        tests = test.replace('```', '').strip().split('**')
-        tests = [line.strip().split('*') for line in tests]
         if task:
+            tests = test.replace('```', '').strip().split('**')
+            tests = [line.strip().split('*') for line in tests]
             for test in tests:
                 self.db.add_test_for_task(task, *test)
-            await ctx.channel.send(f'Добавлен тесткейс в задание: {task_name}')
+            await ctx.send(f'Добавлен тесткейс в задание: {task_name}')
         else:
-            await ctx.channel.send(f'Задание с таким именем не существует: {task_name}')
+            await ctx.send(f'Задание с таким именем не существует: {task_name}')
 
-    #@commands.command()
-    #@parse_channel(channel_name)
     @cog_ext.cog_slash(description='Удалить определенное задание', options=[
-        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True)
-    ])
-    async def remove_task(self, ctx, task_name):
+        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True)],
+                       permissions=Server.get_cmd_permissions())
+    async def remove_task(self, ctx: SlashContext, task_name):
         task = self.db.get_task_by_name(task_name)
         if task:
             self.db.delete_task(task)
-            await ctx.channel.send(f'Удалено задание: {task_name}')
+            await ctx.send(f'Удалено задание: {task_name}', hidden=True)
         else:
-            await ctx.channel.send(f'Задания не сусществует: {task_name}')
+            await ctx.send(f'Задания не сусществует: {task_name}', hidden=True)
 
-    #@commands.command()
-    #@parse_channel(channel_name)
-    @cog_ext.cog_slash(description='Удалить все задания')
-    async def clear_tasks(self, ctx):
+    @cog_ext.cog_slash(description='Посмотреть определенное задание', options=[
+        create_option(name="task_name", description="Имя существующего задания", option_type=3, required=True)])
+    async def read_task(self, ctx: SlashContext, task_name):
+        task = self.db.get_task_by_name(task_name)
+        if task:
+            await ctx.send(f'{task.name}\n```{task.description}```', hidden=True)
+        else:
+            await ctx.send(f'Задания не сусществует: {task_name}', hidden=True)
+
+    @cog_ext.cog_slash(description='Удалить все задания', permissions=Server.get_cmd_permissions())
+    async def clear_tasks(self, ctx: SlashContext):
         self.db.delete_all_tasks()
-        await ctx.channel.send(f'Список заданий очищен')
+        await ctx.send(f'Список заданий очищен', hidden=True)
 
 
 def setup(bot):

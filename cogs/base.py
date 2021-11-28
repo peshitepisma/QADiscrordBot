@@ -1,8 +1,10 @@
 import functools
-from db import Database
 from typing import Union
+
+from discord.ext.commands import Context
+
+from db import Database
 from discord.ext import commands
-from discord.ext.commands.context import Context
 
 
 class Base(commands.Cog):
@@ -23,6 +25,7 @@ def parse_channel(channel_name: Union[str, list]):
         async def wrapper(self, ctx: Context, *args, **kwargs):
             if ctx.channel.name.lower() in channel_name:
                 await func(self, ctx, *args, **kwargs)
-        return wrapper
-    return decorator
 
+        return wrapper
+
+    return decorator

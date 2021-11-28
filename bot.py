@@ -5,6 +5,7 @@ from db import Database
 from asyncio import sleep
 from misc import get_full_path
 from discord.ext import commands
+from misc.addition import Server
 
 
 class Bot(commands.Bot):
@@ -13,8 +14,9 @@ class Bot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.db = Database()
         self.db.create()
-        self.__slash = SlashCommand(self, sync_on_cog_reload=True, sync_commands=True, debug_guild=911196795210694686)
+        self.__slash = SlashCommand(self, sync_on_cog_reload=True, sync_commands=True, debug_guild=Server.id)
         self.__load_cogs()
+        self.remove_command('help')
 
     async def on_ready(self):
         print('Logged on as', self.user)
@@ -29,7 +31,7 @@ class Bot(commands.Bot):
 
     async def __delete_commands(self):
         await utils.manage_commands.remove_all_commands_in(911197595429371924, os.environ.get('TOKEN', ''),
-                                                           guild_id=911196795210694686)
+                                                           guild_id=Server.id)
 
     def __load_cogs(self):
         excluded_cogs = ['base.py', '__init__.py']
