@@ -25,6 +25,7 @@ class Task(Base):
     @parse_channel(channel_name)
     async def add_task(self, ctx: Context, task_name, *, description):
         try:
+            description = description.strip('```')
             self.db.create_task(task_name, description)
             await ctx.send(f'Добавлено задание: {task_name}')
         except exc.IntegrityError:
