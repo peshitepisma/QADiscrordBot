@@ -5,10 +5,10 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from discord_slash import SlashContext
 from cogs import Base
-from cogs.base import parse_channel
 from misc import get_full_path
 from subprocess import Popen, PIPE
 from prettytable import PrettyTable
+from cogs.base import parse_channel
 
 
 class Test(Base):
